@@ -1,17 +1,22 @@
 #include "Editor.h"
 
-//#include "Windows.h"
 // NON-CLASS FUNCTIONS
 void displayWindow() {
-    Display *dpy = XOpenDisplay(0);
-    assert(dpy);
+    Display *dpy{XOpenDisplay(0)};
+    int screen{DefaultScreen(dpy)};
+    int depth{DefaultDepth(dpy,screen)};
+    Visual *visual{DefaultVisual(dpy,screen)};
+    XSetWindowAttributes attributes;
+    Cursor cursor_shape{XCreateFontCursor(dpy, 132)};
 
-    int blackColor = BlackPixel(dpy, DefaultScreen(dpy));
-    int whiteColor = WhitePixel(dpy, DefaultScreen(dpy));
+    assert(dpy);
+    attributes.background_pixel = XWhitePixel(dpy,screen);
 
     // Create window
-    Window w = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0,
-                                    200, 100, 0, blackColor, blackColor);
+    Window w = XCreateWindow(dpy, XRootWindow(dpy,screen), 200, 200, 350, 
+            200, 5, depth, InputOutput, visual, CWBackPixel, &attributes);
+    
+    XDefineCursor(dpy,w,cursor_shape);
 
     // Show window
     XMapWindow(dpy, w);
@@ -43,6 +48,8 @@ Editor::Editor(std::string filename) {
     }
 
     read_file.close();
+
+    displayWindow();
 }
 
 void Editor::displayLines() {
