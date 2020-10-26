@@ -4,6 +4,9 @@
 #include "Point.h"
 #include "LinkedList.h"
 #include <string>
+#include <fstream>
+#include <iostream>
+//#include <Windows.h>
 
 class Editor {
 private:

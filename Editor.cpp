@@ -1,10 +1,7 @@
 #include "Editor.h"
-#include <fstream>
-#include <iostream>
 
+//#include "Windows.h"
 // NON-CLASS FUNCTIONS
-
-
 
 
 Editor::Editor() {
