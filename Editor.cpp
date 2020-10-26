@@ -2,6 +2,23 @@
 
 //#include "Windows.h"
 // NON-CLASS FUNCTIONS
+void displayWindow() {
+    Display *dpy = XOpenDisplay(0);
+    assert(dpy);
+
+    int blackColor = BlackPixel(dpy, DefaultScreen(dpy));
+    int whiteColor = WhitePixel(dpy, DefaultScreen(dpy));
+
+    // Create window
+    Window w = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0,
+                                    200, 100, 0, blackColor, blackColor);
+
+    // Show window
+    XMapWindow(dpy, w);
+    XFlush(dpy);
+
+    sleep(10);
+}
 
 
 Editor::Editor() {

@@ -2,7 +2,6 @@
 #include <string>
 #include "LinkedList.h"
 #include "Editor.h"
-#include "Point.h"
 
 int main() {
     std::string filename("test.txt");
