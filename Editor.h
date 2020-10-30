@@ -8,9 +8,10 @@
 #include <iostream>
 
 // Linux based because can't use Windows.h
-#include <X11/Xlib.h> // For Xlib programs
-#include <assert.h>
-#include <unistd.h>   // So we get the profile for 10 seconds
+#include <ncurses.h>
+//#include <X11/Xlib.h> // For Xlib programs
+//#include <assert.h>
+//#include <unistd.h>   // So we get the profile for 10 seconds
 
 
 class Editor {
@@ -21,5 +22,6 @@ public:
     Editor();
     Editor(std::string filename);
     void displayLines();
+    void moveDown();
 };
 #endif

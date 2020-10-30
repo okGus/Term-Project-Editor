@@ -1,29 +1,6 @@
 #include "Editor.h"
 
 // NON-CLASS FUNCTIONS
-void displayWindow() {
-    Display *dpy{XOpenDisplay(0)};
-    int screen{DefaultScreen(dpy)};
-    int depth{DefaultDepth(dpy,screen)};
-    Visual *visual{DefaultVisual(dpy,screen)};
-    XSetWindowAttributes attributes;
-    Cursor cursor_shape{XCreateFontCursor(dpy, 132)};
-
-    assert(dpy);
-    attributes.background_pixel = XWhitePixel(dpy,screen);
-
-    // Create window
-    Window w = XCreateWindow(dpy, XRootWindow(dpy,screen), 200, 200, 350, 
-            200, 5, depth, InputOutput, visual, CWBackPixel, &attributes);
-    
-    XDefineCursor(dpy,w,cursor_shape);
-
-    // Show window
-    XMapWindow(dpy, w);
-    XFlush(dpy);
-
-    sleep(10);
-}
 
 
 Editor::Editor() {
@@ -48,14 +25,40 @@ Editor::Editor(std::string filename) {
     }
 
     read_file.close();
-
-    displayWindow();
 }
 
 void Editor::displayLines() {
     unsigned int i{1};
+    const char EXIT{'q'};
+
+    initscr();  // Start curses mode
+    noecho();   // No echoing to screen
+    raw();      // Prevents use of signals from ctl + c
+
+    int ch { getch() };
+
+    // Output text to window with printw() from filename
     for (; i < lineNumber.getLength() + 1; i++) {
-        std::cout << lineNumber.getEntry(i);
-        std::cout << '\n';
+        std::string ch { lineNumber.getEntry(i) };
+        printw(ch.c_str());  
+        printw("\n");
     }
+
+    move(0,0);
+    refresh();  // Update screen
+
+    while((ch = getch()) != EXIT) {
+        switch(ch) {
+            case 'j':
+                move(userPosition.get_y() + 1, userPosition.get_x());
+                refresh();
+                break;
+        }
+    }
+
+    endwin();   // End curses mode
+}
+
+void Editor::moveDown() {
+    
 }
