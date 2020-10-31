@@ -1,10 +1,12 @@
 #ifndef POINT_
 #define POINT_
 
-class Point {
+class Point
+{
 private:
     int x{};
     int y{};
+
 public:
     // x and y set to zero
     Point();

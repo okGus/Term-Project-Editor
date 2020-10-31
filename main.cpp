@@ -3,7 +3,8 @@
 #include "LinkedList.h"
 #include "Editor.h"
 
-int main() {
+int main()
+{
     std::string filename("test.txt");
     Editor miniEditor(filename);
     miniEditor.displayLines();
