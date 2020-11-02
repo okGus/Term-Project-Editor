@@ -24,5 +24,6 @@ public:
     void moveUp();
     void moveLeft();
     void moveRight();
+    void run();
 };
 #endif

@@ -33,49 +33,12 @@ Editor::Editor(std::string filename)
 void Editor::displayLines()
 {
     unsigned int i{1};
-    const char QUIT{'q'};
-
-    initscr(); // Start curses mode
-    noecho();  // No echoing to screen
-    raw();     // Prevents use of signals from ctl + c
-
-    int ch{getch()};
-
-    // Output text to window with printw() from filename
     for (; i < lineNumber.getLength() + 1; i++)
     {
         std::string ch{lineNumber.getEntry(i)};
         printw(ch.c_str());
         printw("\n");
     }
-
-    move(0, 0);
-    refresh(); // Update screen
-
-    while ((ch = getch()) != QUIT)
-    {
-        switch (ch)
-        {
-        case 'j':
-            moveDown();
-            refresh();
-            break;
-        case 'k':
-            moveUp();
-            refresh();
-            break;
-        case 'h':
-            moveLeft();
-            refresh();
-            break;
-        case 'l':
-            moveRight();
-            refresh();
-            break;
-        }
-    }
-
-    endwin(); // End curses mode
 }
 
 void Editor::moveDown()
@@ -83,11 +46,12 @@ void Editor::moveDown()
     if (userPosition.get_y() < lineNumber.getLength() - 1)
     {
         // x-coordinate has to be within bounds
-        if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length())
+        if (userPosition.get_x() >= lineNumber.getEntry(userPosition.get_y() + 2).length())
         {
-            userPosition.set_y(userPosition.get_y() + 1);
+            userPosition.set_x(lineNumber.getEntry(userPosition.get_y() + 2).length() - 1);
         }
 
+        userPosition.set_y(userPosition.get_y() + 1);
         move(userPosition.get_y(), userPosition.get_x());
     }
 }
@@ -97,11 +61,12 @@ void Editor::moveUp()
     if (userPosition.get_y() > 0)
     {
         // x-coordinate has to be within bounds
-        if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y()).length())
+        if (userPosition.get_x() >= lineNumber.getEntry(userPosition.get_y()).length())
         {
-            userPosition.set_y(userPosition.get_y() - 1);
+            userPosition.set_x(lineNumber.getEntry(userPosition.get_y()).length() - 1);
         }
 
+        userPosition.set_y(userPosition.get_y() - 1);
         move(userPosition.get_y(), userPosition.get_x());
     }
 }
@@ -126,4 +91,54 @@ void Editor::moveRight()
     }
 
     move(userPosition.get_y(), userPosition.get_x());
+}
+
+void Editor::run()
+{
+    unsigned int i{1};
+    const char QUIT{'q'};
+    const int ESCAPE{27};
+
+    initscr(); // Start curses mode
+    noecho();  // No echoing to screen
+    raw();     // Prevents use of signals from ctl + c
+
+    int ch{getch()};
+
+    // Output text to window with printw() from filename
+    displayLines();
+
+    move(0, 0);
+    refresh(); // Update screen
+
+    while ((ch = getch()) != QUIT)
+    {
+        switch (ch)
+        {
+        case 'j':
+        //case KEY_DOWN:
+            moveDown();
+            refresh();
+            break;
+        case 'k':
+        //case KEY_UP:
+            moveUp();
+            refresh();
+            break;
+        case 'h':
+        //case KEY_LEFT:
+            moveLeft();
+            refresh();
+            break;
+        case 'l':
+        //case KEY_RIGHT:
+            moveRight();
+            refresh();
+            break;
+        //case ESCAPE:
+        //    std::exit(1);
+        }
+    }
+
+    endwin(); // End curses mode
 }
