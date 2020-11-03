@@ -30,7 +30,75 @@ Editor::Editor(std::string filename)
     read_file.close();
 }
 
-void Editor::displayLines()
+void Editor::run()
+{
+    unsigned int i{1};
+    const char QUIT{'q'};
+    const int ESCAPE{27};
+    unsigned int count{};
+
+    initscr(); // Start curses mode
+    noecho();  // No echoing to screen
+    raw();     // Prevents use of signals from ctl + c
+
+    int ch{getch()};
+
+    // Output text to window with printw() from filename
+    display();
+
+    move(0, 0);
+    refresh(); // Update screen
+
+    while ((ch = getch()) != QUIT)
+    {
+        switch (ch)
+        {
+        case 'j':
+            //case KEY_DOWN:
+            moveDown();
+            refresh();
+            break;
+        case 'k':
+            //case KEY_UP:
+            moveUp();
+            refresh();
+            break;
+        case 'h':
+            //case KEY_LEFT:
+            moveLeft();
+            refresh();
+            break;
+        case 'l':
+            //case KEY_RIGHT:
+            moveRight();
+            refresh();
+            break;
+        case 'x':
+            deleteChar();
+            clear();
+            display();
+            move(userPosition.get_y(), userPosition.get_x());
+            break;
+        case 'd':
+            count++;
+            if (count == 2)
+            {
+                deleteLine();
+                count = 0;
+                clear();
+                display();
+                move(userPosition.get_y(), userPosition.get_x());
+            }
+            break;
+            //case ESCAPE:
+            //    std::exit(1);
+        }
+    }
+
+    endwin(); // End curses mode
+}
+
+void Editor::display()
 {
     unsigned int i{1};
     for (; i < lineNumber.getLength() + 1; i++)
@@ -38,6 +106,18 @@ void Editor::displayLines()
         std::string ch{lineNumber.getEntry(i)};
         printw(ch.c_str());
         printw("\n");
+    }
+}
+
+void Editor::displayLine()
+{
+    auto s = lineNumber.getEntry(userPosition.get_y() + 1).erase(userPosition.get_x(), 1);
+    std::cout << s << '\n';
+    unsigned int i{1};
+    for (; i < lineNumber.getLength() + 1; i++)
+    {
+        std::cout << lineNumber.getEntry(i);
+        std::cout << '\n';
     }
 }
 
@@ -93,52 +173,18 @@ void Editor::moveRight()
     move(userPosition.get_y(), userPosition.get_x());
 }
 
-void Editor::run()
+void Editor::deleteChar()
 {
-    unsigned int i{1};
-    const char QUIT{'q'};
-    const int ESCAPE{27};
+    // Push char, delete char, then replace new string
+    undoStack.push(lineNumber.getEntry(userPosition.get_y() + 1).substr(userPosition.get_x(), 1));
+    lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).erase(userPosition.get_x(), 1));
+    // Reset position
+    if (userPosition.get_x() > 0)
+        userPosition.set_x(userPosition.get_x() - 1);
+}
 
-    initscr(); // Start curses mode
-    noecho();  // No echoing to screen
-    raw();     // Prevents use of signals from ctl + c
-
-    int ch{getch()};
-
-    // Output text to window with printw() from filename
-    displayLines();
-
-    move(0, 0);
-    refresh(); // Update screen
-
-    while ((ch = getch()) != QUIT)
-    {
-        switch (ch)
-        {
-        case 'j':
-        //case KEY_DOWN:
-            moveDown();
-            refresh();
-            break;
-        case 'k':
-        //case KEY_UP:
-            moveUp();
-            refresh();
-            break;
-        case 'h':
-        //case KEY_LEFT:
-            moveLeft();
-            refresh();
-            break;
-        case 'l':
-        //case KEY_RIGHT:
-            moveRight();
-            refresh();
-            break;
-        //case ESCAPE:
-        //    std::exit(1);
-        }
-    }
-
-    endwin(); // End curses mode
+void Editor::deleteLine()
+{
+    undoStack.push(lineNumber.getEntry(userPosition.get_y() + 1));
+    lineNumber.remove(userPosition.get_y() + 1);
 }

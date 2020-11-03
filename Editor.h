@@ -3,6 +3,7 @@
 
 #include "Point.h"
 #include "LinkedList.h"
+#include "LinkedStack.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -14,16 +15,20 @@ class Editor
 {
 private:
     LinkedList<std::string> lineNumber;
+    LinkedStack<std::string> undoStack;
     Point userPosition;
 
 public:
     Editor();
     Editor(std::string filename);
-    void displayLines();
+    void display();
+    void displayLine();
     void moveDown();
     void moveUp();
     void moveLeft();
     void moveRight();
+    void deleteChar();
+    void deleteLine();
     void run();
 };
 #endif

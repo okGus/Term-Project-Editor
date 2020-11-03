@@ -8,7 +8,7 @@ int main()
     std::string filename("test.txt");
     Editor miniEditor(filename);
     miniEditor.run();
-
+    //miniEditor.displayLine();
     return 0;
 }
 
