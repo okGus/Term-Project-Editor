@@ -7,6 +7,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include "CommandPlus.h"
 
 // Linux based because can't use Windows.h
 #include <ncurses.h>
@@ -15,8 +16,9 @@ class Editor
 {
 private:
     LinkedList<std::string> lineNumber;
-    LinkedStack<std::string> undoStack;
+    LinkedStack<CommandPlus> undoStack;
     Point userPosition;
+    CommandPlus cmd;
 
 public:
     Editor();
@@ -29,6 +31,8 @@ public:
     void moveRight();
     void deleteChar();
     void deleteLine();
+    void insert_();
+    void undo_();
     void run();
 };
 #endif

@@ -3,11 +3,18 @@
 #include "LinkedList.h"
 #include "Editor.h"
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 1)
+    {
+        std::cerr << "argc is less than 1.\n";
+        return -1;
+    }
+
     std::string filename("test.txt");
     Editor miniEditor(filename);
     miniEditor.run();
+
     //miniEditor.displayLine();
     return 0;
 }

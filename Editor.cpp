@@ -35,13 +35,13 @@ void Editor::run()
     unsigned int i{1};
     const char QUIT{'q'};
     const int ESCAPE{27};
-    unsigned int count{};
+    unsigned int count{}; // Keeps track of case 'dd'
 
     initscr(); // Start curses mode
     noecho();  // No echoing to screen
     raw();     // Prevents use of signals from ctl + c
 
-    int ch{getch()};
+    int ch{cmd.getCommand()};
 
     // Output text to window with printw() from filename
     display();
@@ -57,41 +57,51 @@ void Editor::run()
             //case KEY_DOWN:
             moveDown();
             refresh();
+            count = 0;
             break;
         case 'k':
             //case KEY_UP:
             moveUp();
             refresh();
+            count = 0;
             break;
         case 'h':
             //case KEY_LEFT:
             moveLeft();
             refresh();
+            count = 0;
             break;
         case 'l':
             //case KEY_RIGHT:
             moveRight();
             refresh();
+            count = 0;
             break;
-        case 'x':
+        case 'x': // delete char
             deleteChar();
             clear();
             display();
             move(userPosition.get_y(), userPosition.get_x());
+            count = 0;
             break;
-        case 'd':
+        case 'd': // delete line 'dd'
             count++;
             if (count == 2)
             {
                 deleteLine();
-                count = 0;
                 clear();
                 display();
                 move(userPosition.get_y(), userPosition.get_x());
+                count = 0;
             }
             break;
-            //case ESCAPE:
-            //    std::exit(1);
+        case 'i': // Insert
+            echo();
+            insert_();
+            count = 0;
+            break;
+        case ESCAPE:
+            std::exit(EXIT_FAILURE);
         }
     }
 
@@ -100,6 +110,7 @@ void Editor::run()
 
 void Editor::display()
 {
+    // Display for ncurses
     unsigned int i{1};
     for (; i < lineNumber.getLength() + 1; i++)
     {
@@ -111,8 +122,7 @@ void Editor::display()
 
 void Editor::displayLine()
 {
-    auto s = lineNumber.getEntry(userPosition.get_y() + 1).erase(userPosition.get_x(), 1);
-    std::cout << s << '\n';
+    // This play for normal function (non-ncurses)
     unsigned int i{1};
     for (; i < lineNumber.getLength() + 1; i++)
     {
@@ -175,8 +185,11 @@ void Editor::moveRight()
 
 void Editor::deleteChar()
 {
-    // Push char, delete char, then replace new string
-    undoStack.push(lineNumber.getEntry(userPosition.get_y() + 1).substr(userPosition.get_x(), 1));
+    // save value and location then push to stack
+    cmd.setValue(lineNumber.getEntry(userPosition.get_y() + 1).substr(userPosition.get_x(), 1));
+    cmd.setLocation(userPosition);
+    // Push char, then replace new string
+    undoStack.push(cmd);
     lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).erase(userPosition.get_x(), 1));
     // Reset position
     if (userPosition.get_x() > 0)
@@ -185,6 +198,41 @@ void Editor::deleteChar()
 
 void Editor::deleteLine()
 {
-    undoStack.push(lineNumber.getEntry(userPosition.get_y() + 1));
+    // save value and location then push to stack
+    cmd.setValue(lineNumber.getEntry(userPosition.get_y() + 1));
+    cmd.setLocation(userPosition);
+    // Push line, then remove it
+    undoStack.push(cmd);
     lineNumber.remove(userPosition.get_y() + 1);
+}
+
+void Editor::insert_()
+{
+    bool insertMode{true};
+    while (insertMode)
+    {
+        // Set and move cursor 1+
+        userPosition.set_x(userPosition.get_x() + 1);
+        move(userPosition.get_y(), userPosition.get_x());
+
+        // Get user input
+        char userInput[256];
+        getstr(userInput);
+
+        // Append to last in position y
+        lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).append(userInput));
+        // Fix and move to new position
+        userPosition.set_x(lineNumber.getEntry(userPosition.get_y() + 1).length() - 1);
+        move(userPosition.get_y(), userPosition.get_x());
+        noecho();
+        if (getch() == 27)
+        {
+            insertMode = false;
+        }
+    }
+}
+
+void Editor::undo_()
+{
+    
 }
