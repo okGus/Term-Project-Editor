@@ -18,6 +18,9 @@ private:
     LinkedList<std::string> lineNumber;
     LinkedStack<class CommandPlus> undoStack;
     Point userPosition;
+    const char QUIT{'q'};
+    const int ESCAPE{27};
+    const int ENTER{13};
 
 public:
     Editor();

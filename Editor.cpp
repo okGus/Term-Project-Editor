@@ -32,8 +32,6 @@ Editor::Editor(std::string filename)
 
 void Editor::run()
 {
-    const char QUIT{'q'};
-    const int ESCAPE{27};
     unsigned int count{}; // Keeps track of case 'dd'
     CommandPlus cmd;
 
@@ -49,7 +47,7 @@ void Editor::run()
     move(0, 0);
     refresh(); // Update screen
 
-    while ((ch = getch()) != QUIT)
+    while ((ch = getch()) != QUIT && ch != ESCAPE)
     {
         switch (ch)
         {
@@ -104,8 +102,9 @@ void Editor::run()
             insert_();
             count = 0;
             break;
-        case ESCAPE:
-            std::exit(EXIT_FAILURE);
+        default:
+            count = 0;
+            break;
         }
     }
 
@@ -179,7 +178,14 @@ void Editor::moveLeft()
 void Editor::moveRight()
 {
     // If within bounds
-    if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
+    // Was
+    /* 
+    if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length())
+    {
+        userPosition.set_x(userPosition.get_x() + 1);
+    }
+     */
+    if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length())
     {
         userPosition.set_x(userPosition.get_x() + 1);
     }
@@ -252,19 +258,33 @@ void Editor::insert_()
     undoStack.push(tempCommand);
 
     // Set and move cursor 1+
-    userPosition.set_x(userPosition.get_x() + 1);
-    move(userPosition.get_y(), userPosition.get_x());
+    // userPosition.set_x(userPosition.get_x() + 1);
+    // move(userPosition.get_y(), userPosition.get_x());
 
     while (true)
     {
         int _char = getch();
 
-        if (_char == 27)
+        if (_char == ESCAPE)
         {
             // Reset cursor
-            userPosition.set_x(userPosition.get_x() - 1);
-            move(userPosition.get_y(), userPosition.get_x());
+            // userPosition.set_x(userPosition.get_x() - 1);
+            // move(userPosition.get_y(), userPosition.get_x());
             break;
+        }
+
+        // WIP
+        if (_char == '\n')
+        {
+            lineNumber.insert(userPosition.get_y() + 2, " ");
+            userPosition.set_x(0);
+            userPosition.set_y(userPosition.get_y() + 2);
+            move(userPosition.get_y(), userPosition.get_x());
+            // Update display
+            refresh();
+            clear();
+            display();
+            continue;
         }
 
         // Place user's inputed character to modify string in y coordinate
@@ -284,25 +304,8 @@ void Editor::insert_()
     }
 
     // Reset cursor
-    userPosition.set_x(userPosition.get_x() - 1);
-    move(userPosition.get_y(), userPosition.get_x());
-
-    /* while ((_char = getch()) != 27)
-    {
-        // Place user's inputed character to modify string in y coordinate
-        lineNumber.insert(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).insert(userPosition.get_x(), 1, _char));
-
-        // Set and move cursor 1+ after modified string
-        userPosition.set_x(userPosition.get_x() + 1);
-        move(userPosition.get_y(), userPosition.get_x());
-
-        // Update display
-    }
-
-    noecho();
-    // Fix and move to new position
-    userPosition.set_x(userPosition.get_x() - 1);
-    move(userPosition.get_y(), userPosition.get_x()); */
+    // userPosition.set_x(userPosition.get_x() - 1);
+    // move(userPosition.get_y(), userPosition.get_x());
 }
 
 void Editor::undo_()
