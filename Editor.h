@@ -16,9 +16,8 @@ class Editor
 {
 private:
     LinkedList<std::string> lineNumber;
-    LinkedStack<CommandPlus> undoStack;
+    LinkedStack<class CommandPlus> undoStack;
     Point userPosition;
-    CommandPlus cmd;
 
 public:
     Editor();
