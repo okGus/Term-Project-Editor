@@ -11,8 +11,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    std::string filename("test.txt");
-    Editor miniEditor(filename);
+    //std::string filename("test.txt");
+    Editor miniEditor(argv[1], argv[2]);
     miniEditor.run();
 
     //miniEditor.displayLine();

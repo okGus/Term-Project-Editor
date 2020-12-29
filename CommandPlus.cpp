@@ -2,7 +2,7 @@
 
 void CommandPlus::setCommand()
 {
-    ch = getch();
+    return;
 }
 
 int CommandPlus::getCommand() const

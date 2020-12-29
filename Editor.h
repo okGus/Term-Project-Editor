@@ -7,6 +7,8 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include <vector>
 #include "CommandPlus.h"
 
 // Linux based because can't use Windows.h
@@ -18,13 +20,19 @@ private:
     LinkedList<std::string> lineNumber;
     LinkedStack<class CommandPlus> undoStack;
     Point userPosition;
+    std::string textFile;
+    std::vector<std::string> keywords;
     const char QUIT{'q'};
     const int ESCAPE{27};
     const int ENTER{13};
+    bool insertMode{false};
+    WINDOW *win;
+    int height, width, startx, starty;
 
 public:
     Editor();
     Editor(std::string filename);
+    Editor(std::string filename, std::string keywordFile);
     void display();
     void displayLine();
     void moveDown();
