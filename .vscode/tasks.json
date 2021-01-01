@@ -6,7 +6,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "g++-10 -std=c++14 -O3 -g main.cpp Node.h PrecondViolatedExcep.h PrecondViolatedExcep.cpp LinkedList.h ListInterface.h Editor.h Editor.cpp Point.h Point.cpp StackInterface.h LinkedStack.h CommandPlus.h CommandPlus.cpp -lncurses -Wall -Wextra -o miniEditor",
+            "command": "g++-10 -std=c++14 -O3 -g main.cpp Node.h PrecondViolatedExcep.h PrecondViolatedExcep.cpp LinkedList.h ListInterface.h Editor.h Editor.cpp Point.h Point.cpp StackInterface.h LinkedStack.h CommandPlus.h CommandPlus.cpp -lncurses -o miniEditor",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

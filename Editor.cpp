@@ -69,50 +69,43 @@ void Editor::run()
     raw();     // Prevents use of signals from ctl + c
 
     win = newwin(height, width, starty, startx);
-    box(win, 0, 0);
-    wrefresh(win);
-
+    keypad(win, true);
     int ch;
 
-    // Output text to window with printw() from filename
+    // Output text to window with wprintw() from filename
     display();
 
-    move(0, 0);
-    wrefresh(win); // Update screen
+    wmove(win, 0, 0);
 
     while ((ch = wgetch(win)) != QUIT && ch != ESCAPE)
     {
         switch (ch)
         {
         case 'j':
-            // case key_dow:
+        case KEY_DOWN:
             moveDown();
-            wrefresh(win);
             count = 0;
             break;
         case 'k':
-            //case KEY_UP:
+        case KEY_UP:
             moveUp();
-            wrefresh(win);
             count = 0;
             break;
         case 'h':
-            //case KEY_LEFT:
+        case KEY_LEFT:
             moveLeft();
-            wrefresh(win);
             count = 0;
             break;
         case 'l':
-            //case KEY_RIGHT:
+        case KEY_RIGHT:
             moveRight();
-            wrefresh(win);
             count = 0;
             break;
         case 'x': // delete char
             deleteChar();
-            clear();
+            wclear(win);
             display();
-            move(userPosition.get_y(), userPosition.get_x());
+            wmove(win, userPosition.get_y(), userPosition.get_x());
             count = 0;
             break;
         case 'd': // delete line 'dd'
@@ -120,15 +113,15 @@ void Editor::run()
             if (count == 2)
             {
                 deleteLine();
-                clear();
+                wclear(win);
                 display();
-                move(userPosition.get_y(), userPosition.get_x());
+                wmove(win, userPosition.get_y(), userPosition.get_x());
                 count = 0;
             }
             break;
         case 'u': // undo
             undo_();
-            clear();
+            wclear(win);
             display();
             count = 0;
             break;
@@ -153,11 +146,8 @@ void Editor::display()
     for (; i < lineNumber.getLength() + 1; i++)
     {
         std::string ch{lineNumber.getEntry(i)};
-        //waddstr(win, ch.c_str());
-        //waddstr(win, "\n");
         wprintw(win, ch.c_str());
         wprintw(win, "\n");
-        wrefresh(win);
     }
 }
 
@@ -183,7 +173,7 @@ void Editor::moveDown()
         }
 
         userPosition.set_y(userPosition.get_y() + 1);
-        move(userPosition.get_y(), userPosition.get_x());
+        wmove(win, userPosition.get_y(), userPosition.get_x());
     }
 }
 
@@ -198,7 +188,7 @@ void Editor::moveUp()
         }
 
         userPosition.set_y(userPosition.get_y() - 1);
-        move(userPosition.get_y(), userPosition.get_x());
+        wmove(win, userPosition.get_y(), userPosition.get_x());
     }
 }
 
@@ -208,20 +198,29 @@ void Editor::moveLeft()
     if (userPosition.get_x() > 0)
     {
         userPosition.set_x(userPosition.get_x() - 1);
+        wmove(win, userPosition.get_y(), userPosition.get_x());
     }
-
-    move(userPosition.get_y(), userPosition.get_x());
 }
 
 void Editor::moveRight()
 {
-    // If within bounds
-    if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
+    if (insertMode)
     {
-        userPosition.set_x(userPosition.get_x() + 1);
+        if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length())
+        {
+            userPosition.set_x(userPosition.get_x() + 1);
+            wmove(win, userPosition.get_y(), userPosition.get_x());
+        }
     }
-
-    move(userPosition.get_y(), userPosition.get_x());
+    else
+    {
+        // If within bounds
+        if (userPosition.get_x() < lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
+        {
+            userPosition.set_x(userPosition.get_x() + 1);
+            wmove(win, userPosition.get_y(), userPosition.get_x());
+        }
+    }
 }
 
 void Editor::deleteChar()
@@ -249,11 +248,9 @@ void Editor::deleteLine()
     // save value and location then push to stack
     cmd.setValue(lineNumber.getEntry(userPosition.get_y() + 1));
     cmd.setLocation(userPosition);
-
-    // Push line, then remove it
     undoStack.push(cmd);
 
-    // This prevents the last node from being deleted
+    // This prevents if it's the only node from being deleted
     // instead replacing it with an empty string
     if (lineNumber.getLength() == 1)
     {
@@ -265,7 +262,7 @@ void Editor::deleteLine()
     // the cursor from being on an empty line
     if (userPosition.get_y() > 0 && !removed)
     {
-        lineNumber.remove(userPosition.get_y() + 1);
+        lineNumber.remove(userPosition.get_y() + 1); // current line
         userPosition.set_y(userPosition.get_y() - 1);
         removed = true;
     }
@@ -288,12 +285,13 @@ void Editor::insert_()
     tempCommand.setValue(lineNumber.getEntry(userPosition.get_y() + 1));
     undoStack.push(tempCommand);
 
-    WINDOW *boxWindow = newwin(10, 10, LINES - 2, 2);
+    WINDOW *boxWindow = newwin(3, 15, LINES - 3, 0);
+    //box(boxWindow, 0, 0);
+    mvwprintw(boxWindow, 1, 1, "Insert Mode");
+    wrefresh(boxWindow);
 
-    waddstr(boxWindow, "Insert Mode");
-
-    //mvprintw(LINES - 2, 2, "Insert Mode");
-    //move(userPosition.get_y(), userPosition.get_x());
+    // Reset cursor
+    wmove(win, userPosition.get_y(), userPosition.get_x());
 
     // Set and move cursor 1+ if 'x' equals length
     // if (userPosition.get_x() == lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
@@ -304,18 +302,20 @@ void Editor::insert_()
 
     while (true)
     {
-        int _char = getch();
+        int _char = wgetch(win);
 
         if (_char == ESCAPE)
         {
-            // Reset cursor if past length
-            // if (userPosition.get_x() > lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
-            // {
-            //     userPosition.set_x(userPosition.get_x() - 1);
-            //     move(userPosition.get_y(), userPosition.get_x());
-            // }
+            wclear(boxWindow);
+            wrefresh(boxWindow);
             delwin(boxWindow);
             insertMode = false;
+            // Reset cursor if past length
+            if (userPosition.get_x() > lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
+            {
+                userPosition.set_x(userPosition.get_x() - 1);
+                wmove(win, userPosition.get_y(), userPosition.get_x());
+            }
             break;
         }
 
@@ -334,36 +334,42 @@ void Editor::insert_()
             display();
             userPosition.set_x(0);
             userPosition.set_y(userPosition.get_y() + 2);
-            move(userPosition.get_y(), userPosition.get_x());
+            wmove(win, userPosition.get_y(), userPosition.get_x());
             // Update display
             wrefresh(win);
             continue;
         }
 
-        // switch (_char)
-        // {
-        // case KEY_DOWN:
-        //     moveDown();
-        //     break;
-        // }
+        switch (_char)
+        {
+        case KEY_DOWN:
+            moveDown();
+            break;
+        case KEY_UP:
+            moveUp();
+            break;
+        case KEY_RIGHT:
+            moveRight();
+            break;
+        case KEY_LEFT:
+            moveLeft();
+            break;
+        default:
+            // Place user's inputed character to modify string in y coordinate
+            lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).insert(userPosition.get_x(), 1, _char));
 
-        // Place user's inputed character to modify string in y coordinate
-        lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).insert(userPosition.get_x(), 1, _char));
+            // Push new modified line to stack
+            tempCommand.setValue(lineNumber.getEntry(userPosition.get_y() + 1));
+            undoStack.push(tempCommand);
 
-        // Update display
-        clear();
-        display();
+            // Set and move cursor 1+ after modified string
+            userPosition.set_x(userPosition.get_x() + 1);
+            wmove(win, userPosition.get_y(), userPosition.get_x());
 
-        // Push new modified line to stack
-        tempCommand.setValue(lineNumber.getEntry(userPosition.get_y() + 1));
-        undoStack.push(tempCommand);
-
-        // Set and move cursor 1+ after modified string
-        userPosition.set_x(userPosition.get_x() + 1);
-        move(userPosition.get_y(), userPosition.get_x());
-
-        // Update display
-        wrefresh(win);
+            // Update display
+            wrefresh(win);
+            break;
+        }
     }
 
     // Reset cursor
