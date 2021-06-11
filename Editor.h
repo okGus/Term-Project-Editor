@@ -24,7 +24,7 @@ private:
     std::vector<std::string> keywords;
     const char QUIT{'q'};
     const int ESCAPE{27};
-    const int ENTER{13};
+    const int ENTER{10};
     bool insertMode{false};
     WINDOW *win;
     int height, width, startx, starty;

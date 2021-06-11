@@ -293,13 +293,6 @@ void Editor::insert_()
     // Reset cursor
     wmove(win, userPosition.get_y(), userPosition.get_x());
 
-    // Set and move cursor 1+ if 'x' equals length
-    // if (userPosition.get_x() == lineNumber.getEntry(userPosition.get_y() + 1).length() - 1)
-    // {
-    //     userPosition.set_x(userPosition.get_x() + 1);
-    //     move(userPosition.get_y(), userPosition.get_x());
-    // }
-
     while (true)
     {
         int _char = wgetch(win);
@@ -320,7 +313,7 @@ void Editor::insert_()
         }
 
         // WIP
-        if (_char == '\n')
+        if (_char == ENTER)
         {
             std::string first_half{lineNumber.getEntry(userPosition.get_y() + 1).substr(0, userPosition.get_x())};
             std::string second_half{lineNumber.getEntry(userPosition.get_y() + 1).substr(userPosition.get_x())};
@@ -329,14 +322,12 @@ void Editor::insert_()
             lineNumber.replace(userPosition.get_y() + 1, first_half);
             // Insert new node next to cursor node with new string
             lineNumber.insert(userPosition.get_y() + 2, second_half);
-            // Update display
-            clear();
-            display();
             userPosition.set_x(0);
-            userPosition.set_y(userPosition.get_y() + 2);
-            wmove(win, userPosition.get_y(), userPosition.get_x());
+            userPosition.set_y(userPosition.get_y() + 1);
             // Update display
-            wrefresh(win);
+            wclear(win);
+            display();
+            wmove(win, userPosition.get_y(), userPosition.get_x());
             continue;
         }
 
@@ -354,6 +345,13 @@ void Editor::insert_()
         case KEY_LEFT:
             moveLeft();
             break;
+        case '\t':
+            lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).insert(userPosition.get_x(), 4, ' '));
+            userPosition.set_x(userPosition.get_x() + 4);
+            wclear(win);
+            display();
+            wmove(win, userPosition.get_y(), userPosition.get_x());
+            break;
         default:
             // Place user's inputed character to modify string in y coordinate
             lineNumber.replace(userPosition.get_y() + 1, lineNumber.getEntry(userPosition.get_y() + 1).insert(userPosition.get_x(), 1, _char));
@@ -364,17 +362,15 @@ void Editor::insert_()
 
             // Set and move cursor 1+ after modified string
             userPosition.set_x(userPosition.get_x() + 1);
-            wmove(win, userPosition.get_y(), userPosition.get_x());
 
             // Update display
+            wclear(win);
             wrefresh(win);
+            display();
+            wmove(win, userPosition.get_y(), userPosition.get_x());
             break;
         }
     }
-
-    // Reset cursor
-    // userPosition.set_x(userPosition.get_x() - 1);
-    // move(userPosition.get_y(), userPosition.get_x());
 }
 
 void Editor::undo_()
